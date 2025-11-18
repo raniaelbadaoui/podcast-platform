@@ -1,12 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-
+/**
+ * @OA\Tag(name="Podcasts") 
+ */
 use App\Models\Podcast;
 use App\Http\Requests\StorePodcastRequest;
 use App\Http\Requests\UpdatePodcastRequest;
+use App\Http\Requests\UploadPodcastRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
+
 class PodcastController extends Controller
 {
     public function index()
@@ -28,13 +33,49 @@ class PodcastController extends Controller
         return response()->json($podcast);
     }
 
-     public function store(StorePodcastRequest $request)
+    public function store(StorePodcastRequest $request)
     {
-        $podcast = Podcast::create($request->validated());
+        $host = $request->user()->host;
+        
+        if (!$host) {
+            return response()->json([
+                'message' => 'User is not a host'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $data = $request->validated();
+        $data['host_id'] = $host->id;
+        $data['slug'] = Str::slug($data['title']);
+        
+        $podcast = Podcast::create($data);
         return response()->json($podcast, Response::HTTP_CREATED);
     }
 
-     public function update(UpdatePodcastRequest $request, $id)
+    public function storeWithFile(UploadPodcastRequest $request)
+    {
+        $host = $request->user()->host;
+        
+        if (!$host) {
+            return response()->json([
+                'message' => 'User is not a host'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $data = $request->validated();
+        $data['host_id'] = $host->id;
+        $data['slug'] = Str::slug($data['title']);
+
+        // تحميل cover image إذا وجد
+        if ($request->hasFile('cover_image')) {
+            $path = $request->file('cover_image')->store('podcasts/covers', 'public');
+            $data['cover_image'] = $path;
+        }
+
+        $podcast = Podcast::create($data);
+        return response()->json($podcast, Response::HTTP_CREATED);
+    }
+
+    public function update(UpdatePodcastRequest $request, $id)
     {
         $podcast = Podcast::find($id);
 

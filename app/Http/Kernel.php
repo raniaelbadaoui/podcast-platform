@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'host' => \App\Http\Middleware\CheckHost::class,
         'admin' => \App\Http\Middleware\CheckAdmin::class,
+        'podcast.owner' => \App\Http\Middleware\CheckPodcastOwnership::class,
     ];
 }

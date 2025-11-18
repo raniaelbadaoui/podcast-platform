@@ -45,6 +45,9 @@ class SearchController extends Controller
                 $q->where('title', 'like', '%' . $request->podcast . '%');
             });
         }
+        if ($request->has('date')) {
+    $query->whereDate('created_at', $request->date);
+}
 
         $episodes = $query->get();
         return response()->json($episodes);

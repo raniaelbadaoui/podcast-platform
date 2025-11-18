@@ -28,4 +28,13 @@ class Podcast extends Model
     {
         return $this->hasMany(Episode::class);
     }
+    protected $appends = ['cover_image_url'];
+
+public function getCoverImageUrlAttribute()
+{
+    if ($this->cover_image) {
+        return asset('storage/' . $this->cover_image);
+    }
+    return null;
+}
 }
